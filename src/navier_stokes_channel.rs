@@ -3,6 +3,7 @@ use gnuplot::*;
 use std::fs;
 use std::io::Write;
 use std::time::{Duration, SystemTime};
+use crate::rectangle::*;
 pub struct NavierStokesChannel;
 impl NavierStokesChannel{
     pub fn build_up_b(rho:f64,dt:f64,dx:f64,dy:f64,u:&Array2<f64>,v:&Array2<f64>)->Array2<f64>{
@@ -70,38 +71,38 @@ impl NavierStokesChannel{
         return p;
     }
 
-    pub fn compute(){
-        let now = SystemTime::now();
-        let nx = 41;
-        let ny = 41;
-        let nt = 10;
+    pub fn compute(domain:&mut Rectangle){
+        // let now = SystemTime::now();
+        let nx = domain.mesh_n[0];
+        let ny = domain.mesh_n[1];
+        // let nt = 10;
         // let nit = 50;
         let c = 1;
-        let dx = 2./(nx as f64 -1.);
-        let dy = 2./(ny as f64 -1.);
+        let dx = domain.mesh_d[0];
+        let dy = domain.mesh_d[1];
         
-        let rho = 1.;
-        let nu = 0.1;
-        let F = 1.;
-        let dt = 0.01;
+        let rho = domain.params[0];
+        let nu = domain.params[1];
+        let F = domain.params[2];
+        let dt = domain.dt;
 
-        let mut u = Array2::<f64>::zeros((ny,nx));
-        let mut un = Array2::<f64>::zeros((ny,nx));
+        let mut u = domain.data[0].clone();
+        let mut un = domain.data[0].clone();
 
-        let mut v = Array2::<f64>::zeros((ny,nx));
-        let mut vn = Array2::<f64>::zeros((ny,nx));
+        let mut v = domain.data[1].clone();
+        let mut vn = domain.data[1].clone();
 
-        let mut p = Array2::<f64>::zeros((ny,nx));
-        let mut pn = Array2::<f64>::zeros((ny,nx));
+        let mut p = domain.data[2].clone();
+        let mut pn = domain.data[2].clone();
         
         let mut b = Array2::<f64>::zeros((ny,nx));
 
         let mut udiff = 1.;
-        let mut stepcount = 0;
+        // let mut stepcount = 0;
 
-        while udiff > 0.001{
-            un = u.clone();
-            vn = v.clone();
+        // while udiff > 0.001{
+        //     un = u.clone();
+        //     vn = v.clone();
 
             b = Self::build_up_b(rho, dt, dx, dy, &u, &v);
             p = Self::pressure_poisson_periodic(&p, dx, dy);
@@ -162,40 +163,46 @@ impl NavierStokesChannel{
                 u[[ny-1,j]] = 0.;
             }
 
-            stepcount+=1;
-            udiff = (u.sum()-un.sum())/u.sum();
-        }
-        println!("{:?}",now.elapsed());
-        println!("{}",stepcount);
+            // stepcount+=1;
+            // udiff = (u.sum()-un.sum())/u.sum();
+        // }
+        // println!("{:?}",now.elapsed());
+        // println!("{:?}",udiff);
+        // println!("{}",stepcount);
+        
 
-        let mut fg = Figure::new();
-        fg.axes3d().surface(&u,nx,ny,Some((0.,0.,2.,2.)),&[]);
-        fg.show();
-        let mut fg = Figure::new();
-        fg.axes3d().surface(&v,nx,ny,Some((0.,0.,2.,2.)),&[]);
-        fg.show();
-        let mut fg = Figure::new();
-        fg.axes3d().surface(&p,nx,ny,Some((0.,0.,2.,2.)),&[]);
-        fg.show();
-        let mut fileu = fs::File::create("/home/zz/work/rust/cfd_tut/tut15_u.csv").unwrap();
-        let mut filev = fs::File::create("/home/zz/work/rust/cfd_tut/tut15_v.csv").unwrap();
-        let mut filep = fs::File::create("/home/zz/work/rust/cfd_tut/tut15_p.csv").unwrap();
 
-        for i in 0..ny{
-            for j in 0..nx{
-                // println!("{},{},{},{},{}",i as f64*dx,j as f64*dy
-                //     ,u[[i,j]],v[[i,j]],p[[i,j]]);
-                let su:String=format!("{},",u[[i,j]]);
-                fileu.write_all(su.as_bytes()).unwrap();
-                let sv:String=format!("{},",v[[i,j]]);
-                filev.write_all(sv.as_bytes()).unwrap();
-                let sp:String=format!("{},",p[[i,j]]);
-                filep.write_all(sp.as_bytes()).unwrap();
-            }
-            fileu.write_all(b"\n").unwrap();
-            filev.write_all(b"\n").unwrap();
-            filep.write_all(b"\n").unwrap();
-        }
+        // let mut fg = Figure::new();
+        // fg.axes3d().surface(&u,nx,ny,Some((0.,0.,2.,2.)),&[]);
+        // fg.show();
+        // let mut fg = Figure::new();
+        // fg.axes3d().surface(&v,nx,ny,Some((0.,0.,2.,2.)),&[]);
+        // fg.show();
+        // let mut fg = Figure::new();
+        // fg.axes3d().surface(&p,nx,ny,Some((0.,0.,2.,2.)),&[]);
+        // fg.show();
+        // let mut fileu = fs::File::create("/home/zz/work/rust/cfd_tut/tut15_u.csv").unwrap();
+        // let mut filev = fs::File::create("/home/zz/work/rust/cfd_tut/tut15_v.csv").unwrap();
+        // let mut filep = fs::File::create("/home/zz/work/rust/cfd_tut/tut15_p.csv").unwrap();
+
+        // for i in 0..ny{
+        //     for j in 0..nx{
+        //         // println!("{},{},{},{},{}",i as f64*dx,j as f64*dy
+        //         //     ,u[[i,j]],v[[i,j]],p[[i,j]]);
+        //         let su:String=format!("{},",u[[i,j]]);
+        //         fileu.write_all(su.as_bytes()).unwrap();
+        //         let sv:String=format!("{},",v[[i,j]]);
+        //         filev.write_all(sv.as_bytes()).unwrap();
+        //         let sp:String=format!("{},",p[[i,j]]);
+        //         filep.write_all(sp.as_bytes()).unwrap();
+        //     }
+        //     fileu.write_all(b"\n").unwrap();
+        //     filev.write_all(b"\n").unwrap();
+        //     filep.write_all(b"\n").unwrap();
+        // }
+        domain.data[0] = u;
+        domain.data[1] = v;
+        domain.data[2] = p;
     }
 }
 

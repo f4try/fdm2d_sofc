@@ -33,8 +33,10 @@ fn main() {
          l_ch, h_fch, nx, ny, dt,rectangle::RectangleType::Channel,vec![1.,0.1,1.,0.1]);
     
     let data_zero = Array2::<f64>::zeros((ny,nx));
-    let boundary_topbottom_zero=Array1::<f64>::zeros(nx);
-    let boundary_leftright_zero=Array1::<f64>::zeros(ny);
+//     let boundary_topbottom_zeros=Array1::<f64>::zeros(nx);
+//     let boundary_leftright_zeros=Array1::<f64>::zeros(ny);
+//     let boundary_topbottom_ones=Array1::<f64>::zeros(nx);
+//     let boundary_leftright_ones=Array1::<f64>::zeros(ny);
     let mut fileu = fs::File::create("./data_u.csv").unwrap();
     let mut filev = fs::File::create("./data_v.csv").unwrap();
     let mut filep = fs::File::create("./data_p.csv").unwrap();
@@ -43,15 +45,6 @@ fn main() {
     let mut filephi= fs::File::create("./data_phi.csv").unwrap();
     
     for n in 0..nt{ 
-          poisson::Poisson::compute(&mut fl,1,[-1.,-1.,0.,0.9]);
-          poisson::Poisson::compute(&mut fl,2,[-1.,-1.,0.,0.1]);
-          poisson::Poisson::compute(&mut al,1,[-1.,-1.,0.21,0.]);
-          poisson::Poisson::compute(&mut al,2,[-1.,-1.,0.79,0.]);
-
-          poisson::Poisson::compute(&mut fl,0,[-1.,-1.,-0.1,0.]);
-          poisson::Poisson::compute(&mut el,0,[-1.,-1.,0.75,0.9]);
-          poisson::Poisson::compute(&mut al,0,[-1.,-1.,0.7,0.75]);
-          // laplace::Laplace::compute(&mut al,1);
           navier_stokes_channel::NavierStokesChannel::compute(&mut fch);
           navier_stokes_channel::NavierStokesChannel::compute(&mut ach);
 
@@ -59,6 +52,20 @@ fn main() {
           burgers::Burgers::compute(&mut fch,4,[0.1,0.05,-1.,-1.]);
           burgers::Burgers::compute(&mut ach,3,[0.21,0.1,-1.,-1.]);
           burgers::Burgers::compute(&mut ach,4,[0.7,0.79,-1.,-1.]);
+          for j in 0..nx{
+               fl.data[1][[ny-1,j]] = fch.data[3][[0,j]];
+               al.data[1][[0,j]] = ach.data[3][[ny-1,j]];
+          }
+          poisson::Poisson::compute(&mut fl,1,[-1.,-1.,0.,-1.]);
+          poisson::Poisson::compute(&mut fl,2,[-1.,-1.,0.,-1.]);
+          poisson::Poisson::compute(&mut al,1,[-1.,-1.,-1.,0.]);
+          poisson::Poisson::compute(&mut al,2,[-1.,-1.,-1.,0.]);
+
+          poisson::Poisson::compute(&mut fl,0,[-1.,-1.,0.0,0.2]);
+          poisson::Poisson::compute(&mut el,0,[-1.,-1.,0.75,0.9]);
+          poisson::Poisson::compute(&mut al,0,[-1.,-1.,0.7,0.75]);
+          // laplace::Laplace::compute(&mut al,1);
+   
      
      // let mut fg = Figure::new();
      // let domain = fch;
@@ -80,6 +87,7 @@ fn main() {
      //      ,&[]);
      // fg.show();
 
+     // }
      
 
           write_data(&ach.data[0], &mut fileu);

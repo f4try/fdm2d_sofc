@@ -51,7 +51,7 @@ impl Poisson{
         // }
     }
 
-    pub fn compute(domain:&mut Rectangle,data_index:usize,boundary:[Array1<f64>;4]){
+    pub fn compute(domain:&mut Rectangle,data_index:usize,boundary:[f64;4]){
         let nx = domain.mesh_n[0];
         let ny = domain.mesh_n[1];
         // let nt = 100;
@@ -73,12 +73,12 @@ impl Poisson{
         if boundary[1]>0.{
             Zip::from(p.slice_mut(s![..,col-1])).apply(|pb|*pb=boundary[1]);
         }
-        // if boundary[2]>0.{
+        if boundary[2]>0.{
             Zip::from(p.slice_mut(s![0,..])).apply(|pb|*pb=boundary[2]);
-        // }
-        // if boundary[3]>0.{
+        }
+        if boundary[3]>0.{
             Zip::from(p.slice_mut(s![row-1,..])).apply(|pb|*pb=boundary[3]);
-        // }
+        }
         // Self::plot2D(&p, nx, ny, xmax, ymax);
         Self::poisson2d(&mut p,&b, dx, dy, 1e-6);
         // Self::plot2D(&p, nx, ny, xmax, ymax);
